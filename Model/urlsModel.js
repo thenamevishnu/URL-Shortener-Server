@@ -12,6 +12,10 @@ const urls = new mongoose.Schema({
     creator:{
         type:mongoose.Types.ObjectId,
         required:true
+    },
+    visits:{
+        type:Number,
+        default:0
     }
 },{
     timestamps:true

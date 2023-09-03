@@ -24,12 +24,11 @@ const user = new mongoose.Schema({
             shortUrl:{
                 type:String,
             },
-            // icon:{
-            //     type:String
-            // },
+            icon:{
+                type:String
+            },
             time:{
-                type:Number,
-                default: Math.floor(new Date().getTime()/1000)
+                type:Number
             }
         }
     ]

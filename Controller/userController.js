@@ -33,7 +33,8 @@ const getUserHistory = async (req, res) => {
     try{
         const user_id = req.params.user_id
         const userData = await userDB.findOne({_id:user_id})
-        res.json(userData.links)
+        const newArray = userData.links.sort((a,b) => b.time - a.time)
+        res.json(newArray)
     }catch(err){
         res.json({error:err.message})
     }
@@ -56,12 +57,6 @@ const createLink = async (req, res) => {
         let shortKey = null
         const LinkExist = await urlDB.findOne({longUrl:link})
         if(LinkExist){
-            const insertData = {
-                longUrl:link,
-                shortUrl:process.env.origin + /r/ + "" + LinkExist.short_id,
-                time: new Date().getTime()
-            }
-            await userDB.updateOne({_id: new mongoose.Types.ObjectId(id)},{$push:{links:insertData}})
             obj.status = true
             obj.response = process.env.origin + /r/ + "" + LinkExist.short_id
         }else{
@@ -85,12 +80,6 @@ const createLink = async (req, res) => {
             }
             if(shortKey){
                 await urlDB.create({short_id:shortKey,longUrl:link,creator:id})
-                const insertData = {
-                    longUrl:link,
-                    shortUrl:process.env.origin + /r/ + "" + shortKey,
-                    time: new Date().getTime()
-                }
-                await userDB.updateOne({_id: new mongoose.Types.ObjectId(id)},{$push:{links:insertData}})
                 obj.status = true
                 obj.response = process.env.origin + /r/ + "" + shortKey
             }else{
