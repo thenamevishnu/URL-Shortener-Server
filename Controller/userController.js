@@ -3,6 +3,7 @@ import { userDB } from "../Model/userModel.js";
 import jwt from "jsonwebtoken"
 import randomstring from "randomstring"
 import { urlDB } from "../Model/urlsModel.js";
+import axios from "axios"
 
 const login = async (req, res) => {
     try{
@@ -41,8 +42,8 @@ const getUserHistory = async (req, res) => {
 }
 
 const fetchIcon = async (url) => {
-    const response = await fetch(url)
-    const htmlContent = await response.text()
+    const response = await axios.get(url)
+    const htmlContent = await response.data
     const match = htmlContent.match(/<link .*?rel=["']icon["'].*?href=["'](.*?)["']/i);
     
     if(match && match[1]) {
@@ -60,12 +61,15 @@ const fetchIcon = async (url) => {
 const insertHistory = async (req, res) => {
     try{
         const {insertData,id} = req.body
-        console.log(insertData);
         const icon = await fetchIcon(insertData.longUrl)
-        console.log(icon, "hey");
         if(icon.status) insertData.icon = icon.response
-        const response = await userDB.updateOne({_id: new mongoose.Types.ObjectId(id)},{$push:{links:insertData}})
-        res.json({response:insertData})
+        const exist = await userDB.find({links:{$elemMatch:{$and:[{longUrl:insertData.longUrl,shortUrl:insertData.shortUrl}]}}})
+        if(exist.length===0){
+            await userDB.updateOne({_id: new mongoose.Types.ObjectId(id)},{$push:{links:insertData}})
+            res.json({status:true,response:insertData})
+        }else{
+            res.json({status:false,response:insertData})
+        }
     }catch(err){
         res.json({error:err.message})
     }
@@ -76,7 +80,8 @@ const createLink = async (req, res) => {
         const {link, id, alias} = req.body
         const obj = {}
         let shortKey = null
-        const LinkExist = await urlDB.findOne({longUrl:link})
+        const checkObj = alias ? {longUrl:link,short_id:alias,creator:id} : {longUrl:link,creator:id}
+        const LinkExist = await urlDB.findOne(checkObj)
         if(LinkExist){
             obj.status = true
             obj.response = process.env.origin + /r/ + "" + LinkExist.short_id
@@ -123,4 +128,15 @@ const redirect_to = async (req, res) => {
     }
 }
 
-export default {login, getUserHistory, insertHistory, createLink, redirect_to}
+const deleteElement = async (req, res) => {
+    try{
+        const {item, user_id} = req.body
+        await userDB.updateOne({_id: new mongoose.Types.ObjectId(user_id)},{$pull:{links:item}});
+        const response = await userDB.findOne({_id: user_id})
+        res.json({status:true, response: response.links})
+    }catch(err){
+        res.json({error:err.message})
+    }
+}
+
+export default {login, getUserHistory, insertHistory, createLink, redirect_to, deleteElement}

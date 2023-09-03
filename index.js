@@ -10,7 +10,7 @@ dotenv.config()
 const app=express()
 
 app.listen(3001,()=>{
-    console.log("connected 3001");
+    console.log("Server running...");
 })
 
 app.use(cookieParser())
@@ -25,7 +25,7 @@ mongoose.connect(process.env.DB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 }).then(() => {
-    console.log("Database connect successfully");
+    console.log("MongoDB Connected Succesfull!");
 }).catch((error) => {
     console.log(error.message)
 })

@@ -9,4 +9,6 @@ router.post("/insertHistory",userAuth,userController.insertHistory)
 router.post("/createLink",userAuth,userController.createLink)
 router.get("/redirect_to/:shortKey",userController.redirect_to)
 
+router.post("/deleteElement",userAuth, userController.deleteElement)
+
 export default router
