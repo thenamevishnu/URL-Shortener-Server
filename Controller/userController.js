@@ -40,11 +40,32 @@ const getUserHistory = async (req, res) => {
     }
 }
 
+const fetchIcon = async (url) => {
+    const response = await fetch(url)
+    const htmlContent = await response.text()
+    const match = htmlContent.match(/<link .*?rel=["']icon["'].*?href=["'](.*?)["']/i);
+    
+    if(match && match[1]) {
+        return {
+            status:true,
+            response: match[1]
+        }
+    }else{
+        return { 
+            status: false
+        }
+    }
+}
+
 const insertHistory = async (req, res) => {
     try{
         const {insertData,id} = req.body
+        console.log(insertData);
+        const icon = await fetchIcon(insertData.longUrl)
+        console.log(icon, "hey");
+        if(icon.status) insertData.icon = icon.response
         const response = await userDB.updateOne({_id: new mongoose.Types.ObjectId(id)},{$push:{links:insertData}})
-        res.json({response:response})
+        res.json({response:insertData})
     }catch(err){
         res.json({error:err.message})
     }
