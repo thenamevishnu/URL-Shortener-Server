@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken"
 import randomstring from "randomstring"
 import { urlDB } from "../Model/urlsModel.js";
 import axios from "axios"
-import {isUri} from "valid-url"
+import {isUri,isWebUri} from "valid-url"
 
 const login = async (req, res) => {
     try{
