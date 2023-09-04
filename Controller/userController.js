@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken"
 import randomstring from "randomstring"
 import { urlDB } from "../Model/urlsModel.js";
 import axios from "axios"
+import {isUri} from "valid-url"
 
 const login = async (req, res) => {
     try{
@@ -45,7 +46,6 @@ const fetchIcon = async (url) => {
     const response = await axios.get(url)
     const htmlContent = await response.data
     const match = htmlContent.match(/<link .*?rel=["']icon["'].*?href=["'](.*?)["']/i);
-    
     if(match && match[1]) {
         return {
             status:true,
@@ -61,8 +61,16 @@ const fetchIcon = async (url) => {
 const insertHistory = async (req, res) => {
     try{
         const {insertData,id} = req.body
-        const icon = await fetchIcon(insertData.longUrl)
-        if(icon.status) insertData.icon = icon.response
+        let icon = await fetchIcon(insertData.longUrl)
+        console.log(icon);
+        if(icon.status){
+            if(!isUri(icon)){
+                const host = new URL(insertData.longUrl)
+                icon.response = host.protocol + "//" + host.host + "" + icon.response
+            }
+            console.log(icon)
+            insertData.icon = icon.response
+        }
         const exist = await userDB.find({links:{$elemMatch:{$and:[{longUrl:insertData.longUrl,shortUrl:insertData.shortUrl}]}}})
         if(exist.length===0){
             await userDB.updateOne({_id: new mongoose.Types.ObjectId(id)},{$push:{links:insertData}})
