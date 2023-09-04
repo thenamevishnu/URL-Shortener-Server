@@ -62,13 +62,11 @@ const insertHistory = async (req, res) => {
     try{
         const {insertData,id} = req.body
         let icon = await fetchIcon(insertData.longUrl)
-        console.log(icon);
         if(icon.status){
-            if(!isUri(icon)){
+            if(!isUri(icon.response)){
                 const host = new URL(insertData.longUrl)
                 icon.response = host.protocol + "//" + host.host + "" + icon.response
             }
-            console.log(icon)
             insertData.icon = icon.response
         }
         const exist = await userDB.find({links:{$elemMatch:{$and:[{longUrl:insertData.longUrl,shortUrl:insertData.shortUrl}]}}})
