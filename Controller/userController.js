@@ -111,9 +111,13 @@ const createLink = async (req, res) => {
                 }
             }
             if(shortKey){
-                await urlDB.create({short_id:shortKey,longUrl:link,creator:id})
-                obj.status = true
-                obj.response = process.env.origin + /r/ + "" + shortKey
+                if(isUri(shortKey)){
+                    obj.status = false
+                }else{
+                    await urlDB.create({short_id:shortKey,longUrl:link,creator:id})
+                    obj.status = true
+                    obj.response = process.env.origin + /r/ + "" + shortKey
+                }
             }else{
                 obj.status = false
             }
